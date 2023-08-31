@@ -1,0 +1,150 @@
+###===========================================================
+###------------- SERVER GENERAL SETTINGS ----------
+###-----------------------------------------
+
+#set timezone
+SetEnv TZ America/New_York
+
+## same domain security
+##Header append X-FRAME-OPTIONS "SAMEORIGIN"
+# <Location "/">
+#     Header add Access-Control-Allow-Origin "*.amazonaws.com"
+# </Location>
+
+##START THE REWRITE ENGINE
+RewriteEngine On
+
+# Prevent directory listings and indexing
+IndexIgnore *
+
+# enable symbolic links
+Options +FollowSymLinks -Indexes -MultiViews
+
+# pass the default character set
+AddDefaultCharset UTF-8
+# Force UTF-8 for a number of file formats
+<IfModule mod_mime.c>
+	AddCharset UTF-8 .atom .css .js .json .rss .vtt .xml
+</IfModule>
+
+# protect against DOS attacks by limiting file upload size [ 20MB ]
+LimitRequestBody 21000000
+
+# add MIME types
+# - for SVG
+AddType image/svg+xml svg svgz
+AddEncoding gzip svgz
+
+####-------------> END SETTINGS
+####===================================
+
+###=============================================================
+###---------- PROTECT FILES ------------
+###-------------------------------
+<IfModule mod_headers.c>
+	<FilesMatch "\.(ttf|ttc|otf|eot|woff|woff2|css|font.css)$">
+		Header set Access-Control-Allow-Origin "*"
+	</FilesMatch>
+</IfModule>
+
+##--------------------------------
+##--> PREVENT ACCESS TO CONFIGS
+
+# protect direct access
+<FilesMatch "\.(htaccess|htpasswd|ini|phps|fla|psd|log|sh|env|example|config|config.js|md|gitignore|gitattributes|lock|git)$">
+	Order Allow,Deny
+	Deny from all
+</FilesMatch>
+<Files wp-config.php>
+	Order Allow,Deny
+	Deny from all
+</Files>
+
+##--> end ACCESS TO CONFIGS
+##-------------------------------
+
+####-------------> END FILES
+####===================================
+
+
+###=============================================================
+###---------- PERFORMANCE ------------
+###-------------------------------
+
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/plain
+	AddOutputFilterByType DEFLATE text/html
+	AddOutputFilterByType DEFLATE text/xml
+	AddOutputFilterByType DEFLATE text/css
+	AddOutputFilterByType DEFLATE application/xml
+	AddOutputFilterByType DEFLATE application/xhtml+xml
+	AddOutputFilterByType DEFLATE application/rss+xml
+	AddOutputFilterByType DEFLATE application/javascript
+	AddOutputFilterByType DEFLATE application/x-javascript
+</IfModule>
+
+<IfModule mod_expires.c>
+	ExpiresActive On
+	ExpiresByType image/jpg "access plus 1 year"
+	ExpiresByType image/jpeg "access plus 1 year"
+	ExpiresByType image/gif "access plus 1 year"
+	ExpiresByType image/png "access plus 1 year"
+	ExpiresByType text/css "access plus 1 month"
+	ExpiresByType application/pdf "access plus 1 month"
+	ExpiresByType text/x-javascript "access plus 1 month"
+	ExpiresByType application/x-shockwave-flash "access plus 1 month"
+	ExpiresByType image/x-icon "access plus 1 year"
+	ExpiresDefault "access plus 2 days"
+</IfModule>
+
+
+####-------------> END PERFORMANCE
+####===================================
+
+###======================================================
+###---------- REPEL ATTACKS ------------
+###-------------------------------
+
+#deny access to evil robots site rippers offline browsers and other nasty scum
+
+RewriteCond %{HTTP_USER_AGENT} (Anarchie|ASPSeek|attach|autoemailspider|BlackWidow|Bot\ mailto:craftbot@yahoo.com|ChinaClaw|Custo|DISCo|Download\ Demon|eCatch|EirGrabber|EmailSiphon|EmailWolf|Express\ WebPictures|ExtractorPro|EyeNetIE|FlashGet|GetRight|GetWeb!|Go!Zilla|Go-Ahead-Got-It|GrabNet|Grafula|HMView|HTTrack|Image\ Stripper|Image\ Sucker|Indy\ Library|InterGET|Internet\ Ninja|JetCar|JOC\ Web\ Spider|larbin|LeechFTP|Mass\ Downloader|MIDown\ tool|Mister\ PiX|Navroad|NearSite|NetAnts|NetSpider|Net\ Vampire|NetZIP|Octopus|Offline\ Explorer|Offline\ Navigator|PageGrabber|Papa\ Foto|pavuk|pcBrowser|RealDownload|ReGet|SiteSnagger|SmartDownload|SuperBot|SuperHTTP|Surfbot|tAkeOut|Teleport\ Pro|VoidEYE|Web\ Image\ Collector|Web\ Sucker|WebAuto|WebCopier|WebFetch|WebGo\ IS|WebLeacher|WebReaper|WebSauger|Website\ eXtractor|Website\ Quester|WebStripper|WebWhacker|WebZIP|Wget|Widow|WWWOFFLE|Xaldon\ WebSpider|Xenu|Zeus.*Webster|Zeus|AltaVista|Googlebot|msnbot|Slurp) [NC]
+RewriteRule ^.* - [F,L]
+
+##end BAD ROBOTS
+
+####-------------> END ATTACKS
+####===================================
+
+###===========================================================
+###------------- SSL / HTTPS ----------
+###-----------------------------------------
+
+# enforce HTTPS/SSL
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+####-------------> END SSL
+####===================================
+
+###===========================================================
+###------------- APP SETTINGS ----------
+###-----------------------------------------
+
+#INIT__Lavarel_or_others
+<IfModule mod_rewrite.c>
+   
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+#END__Lavarel_or_others

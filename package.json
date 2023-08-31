@@ -1,0 +1,43 @@
+{
+  "name": "sparkcss",
+  "description": "Just like lego blocks but in CSS.",
+  "version": "0.0.1",
+  "config": {
+    "version_short": "0.0.1"
+  },
+  "keywords": [
+    "css",
+    "sass",
+    "responsive",
+    "front-end",
+    "framework",
+    "web"
+  ],
+  "homepage": "https://github.com/knighttower/SparkCss",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/knighttower/SparkCss.git"
+  },
+  "scripts": {
+    "dev": "yarn run development",
+    "development": "yarn mix",
+    "watch": "yarn mix watch",
+    "prod": "yarn run production",
+    "production": "yarn mix --production"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.15",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.47.0",
+    "find-unused-sass-variables": "^5.0.0",
+    "laravel-mix": "^6.0.49",
+    "laravel-mix-compress": "^3.0.0",
+    "postcss": "^8.4.28",
+    "postcss-import": "^15.1.0",
+    "prettier": "^3.0.3",
+    "pretty-quick": "^3.1.3",
+    "sass": "^1.66.1",
+    "sass-loader": "^13.3.2"
+  }
+}

@@ -1,0 +1,29 @@
+
+##START THE REWRITE ENGINE
+RewriteEngine On
+
+##--------------------------------
+##--> PREVENT ACCESS TO CONFIGS
+
+# protect direct access
+<FilesMatch "\.(htaccess|htpasswd|ini|phps|fla|psd|log|sh|env|example|config|config.js|md|gitignore|gitattributes|lock|git|gsettings)$">
+	Order Allow,Deny
+	Deny from all
+</FilesMatch>
+
+##--------------------------------
+
+
+IndexIgnore *
+
+# remove the trailing slash
+RewriteCond %{REQUEST_URI} (.+)/$
+RewriteRule ^ %1 [L,R=301]
+
+# remove the trailing slash if has a query parameter
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} ^([^?]+?)/$
+RewriteRule ^ %1 [QSA,L,R=301]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ public/$1 [L]

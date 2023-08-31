@@ -1,0 +1,542 @@
+#!/usr/bin/env bash
+
+rootDir="$(pwd)"
+echo "$rootDir"
+rootDirWin="$(pwd -W)"
+echo "$rootDirWin"
+
+laravel=true
+publicDir="public"
+dockerUser=laravel
+
+prompt_input() {
+    local message=$1
+    local input
+
+    read -p $'\e[43;30m'"${message}"$'\e[0m : ' input
+    echo "$input"
+}
+
+get_env() {
+    local var=$1
+
+    if [ -z "$var" ]; then
+        echo "Error: No variable name specified."
+        exit 1
+    fi
+
+    VAR=$(grep -w "$var" "$rootDir/.env" | head -1)
+    IFS="=" read -ra VAR <<<"$VAR"
+    envVar="${VAR[1]}"
+
+    envVar=${envVar%$'\n'}   # Remove a trailing newline.
+    envVar=${envVar//$'\n'/} # Remove all newlines.
+    echo ${envVar} | tr -d '\040\011\012\015'
+}
+
+toTitleCase() {
+    local input="$1"
+    local output=""
+    local capitalize_next=1
+
+    for ((i = 0; i < ${#input}; i++)); do
+        char="${input:$i:1}"
+
+        if [[ $capitalize_next -eq 1 ]]; then
+            char=$(echo "$char" | tr 'a-z' 'A-Z')
+            capitalize_next=0
+        else
+            char=$(echo "$char" | tr 'A-Z' 'a-z')
+        fi
+
+        output="$output$char"
+
+        if [[ "$char" == " " ]]; then
+            capitalize_next=1
+        fi
+    done
+
+    echo "$output"
+}
+
+function cleanString() {
+    local input_string="$1"
+    local cleaned_string=$(echo "$input_string" | sed 's/[^a-zA-Z0-9]/_/g')
+    echo "$cleaned_string"
+}
+
+function copyFiles() {
+    local source_dir="$1"
+    local target_dir="$2"
+
+    if [ ! -d "$source_dir" ]; then
+        echo "Source directory '$source_dir' does not exist."
+        return 1
+    fi
+
+    if [ ! -d "$target_dir" ]; then
+        echo "Target directory '$target_dir' does not exist."
+        return 1
+    fi
+
+    tput bold    # Apply bold text attribute
+    tput setaf 3 # Apply yellow foreground color
+    echo "Note: Press 'y' to overwrite, 'n' to skip."
+    tput sgr0 # Reset text attributes
+
+    shopt -s dotglob
+    for item in "$source_dir"/*; do
+        item_name=$(basename "$item")
+        target_item="$target_dir/$item_name"
+
+        if [ -e "$target_item" ]; then
+            read -p "$(tput bold)$(tput setaf 1)File/folder '$item_name' already exists in the target directory. Overwrite? (y/n): $(tput sgr0)" choice
+            case "$choice" in
+            y | Y)
+                if [ ! -d "$target_dir/_backup" ]; then
+                    mkdir "$target_dir/_backup"
+                fi
+
+                backup_item="$target_dir/_backup/$item_name"
+                if [ -e "$backup_item" ]; then
+                    backup_item="$target_dir/_backup/${item_name}_$(date +%Y%m%d%H%M%S)"
+                fi
+
+                mv "$target_item" "$backup_item"
+                cp -R "$item" "$target_dir"
+                echo "Copied '$item_name' to '$target_dir' and backed up the original."
+                ;;
+            n | N)
+                echo "Skipped '$item_name'."
+                ;;
+            *)
+                echo "Invalid choice. Skipped '$item_name'."
+                ;;
+            esac
+        else
+            specific_items=(".jarvis" ".docker" "phpcs.php" "phpcs.xml" "phpunit.xml" "pint.json")
+            if [[ " ${specific_items[*]} " =~ " $item_name " ]]; then
+                read -p "Copy '$item_name'? (y/n): " copy_specific
+                case "$copy_specific" in
+                y | Y)
+                    cp -R "$item" "$target_dir"
+                    echo "Copied '$item_name' to '$target_dir'."
+                    ;;
+                *)
+                    echo "Skipped '$item_name'."
+                    ;;
+                esac
+            else
+                cp -R "$item" "$target_dir"
+                echo "Copied '$item_name' to '$target_dir'."
+            fi
+        fi
+    done
+    shopt -u dotglob
+}
+
+function gitInit() {
+    echo -e "\e[32mInitializing git\e[0m"
+    # ----------------- Run git related -----------------
+    git init
+
+    copyFiles "$rootDir/.installer-files" "$rootDir"
+
+    # This installs in the host machine, not the docker container
+    # Later (if server installed) it will install it in the docker container
+    bash "$rootDir/.gitcommands/git/install-git-cmd.sh" "$rootDir"
+
+    # ----------------- Check if it is Laravel -----------------
+    while true; do
+        read -p $'\e[91m--------- is this a Laravel Project?\e[0m (Y / N) : ' islaravel
+
+        case $islaravel in
+        [Yy]*)
+            laravel=true
+            break
+            ;;
+        [Nn]*)
+            laravel=false
+            break
+            ;;
+        *) echo "Please answer yes or no." ;;
+        esac
+    done
+
+    # ----------------- Set the public dir -----------------
+    if [ "$laravel" = false ]; then
+        read -p "------- What is the Public Dir name? enter custom name (or press ENTER for default[public]): " publicDirName
+        if [ "$publicDirName" != "" ]; then
+            publicDir="$publicDirName"
+        else
+            if ! [ -e "$rootDir/$publicDir" ]; then
+                mkdir -p "$rootDir/$publicDir" && chmod -R 755 "$rootDir/$publicDir"
+            fi
+        fi
+    fi
+}
+
+function setupHtaccess() {
+    local isLaravel=$1
+    local pubdir="$2"
+
+    echo -e "\e[32m Init setup htaccess ---->!\e[0m"
+
+    if [ -z "$isLaravel" ]; then
+        isLaravel=$laravel
+    fi
+
+    if [ -z "$pubdir" ]; then
+        pubdir=false
+    fi
+
+    cp "$rootDir/.docker/laravel/htaccess/.htaccess-root" "$rootDir/.htaccess"
+
+    #if it is laravel
+    if [ "$isLaravel" = true ] || [ "$pubdir" != false ]; then
+
+        pubdir=$(sed -e 's|^/*||' <<<"$pubdir")
+        rule="$pubdir\/\$1"
+        sed -i "s|public\/\$1|$rule|" "$rootDir/.htaccess"
+
+        cp "$rootDir/.docker/laravel/htaccess/.htaccess-public" "$rootDir/$pubdir/.htaccess"
+    fi
+
+    echo -e "\e[32m htaccess created! ---->!\e[0m"
+}
+
+function setEnvFile() {
+    echo -e "\e[32mSetting up .env file\e[0m"
+
+    if [ -f "$rootDir/.env" ]; then
+        dockerUser="$(get_env DOCKER_USER)"
+        echo -e "\e[32m ENV file already exists! ---->!\e[0m"
+    else
+        # ----------------- Set the User name -----------------
+        read -p "Enter the -->USER Name<-- to use (or press ENTER for default[laravel]): " userName
+
+        # Check if the response is "d" and set the default value if it is
+        if [ "$userName" = "" ]; then
+            dockerUser="laravel"
+        else
+            dockerUser="$userName"
+        fi
+        echo -e "\e[32m Using userName ----> $dockerUser!\e[0m"
+
+        cp "$rootDir/.docker/laravel/env.template.txt" "$rootDir/.env"
+        sed -i "s|\[SET_APP_ROOT_DIR\]|$rootDir|" "$rootDir/.env"
+        sed -i "s|\[SET_APP_WIN_ROOT_DIR\]|$rootDirWin|" "$rootDir/.env"
+        sed -i "s|\[USER_NAME\]|$dockerUser|" "$rootDir/.env"
+
+        # ----------------- Set the app name -----------------
+        # Prompt the user for a response
+        defaultAppName=$(toTitleCase "${dockerUser} App")
+        read -p "Enter App name (or press ENTER for default[${defaultAppName}]): " appName
+        if [ "$appName" = "" ]; then
+            value="${defaultAppName}"
+        else
+            cleanedName=$(clean_string "$appName")
+            value="$cleanedName"
+        fi
+        echo -e "\e[32m Using App Name ----> $value!\e[0m"
+
+        sed -i "s|\[SET_APP_NAME\]|$value|" "$rootDir/.env"
+
+        # ----------------- Set the DATABASE -----------------
+        # Prompt the user for a response
+        defaultDbName="${dockerUser}__app"
+        read -p "Enter App Database (-->OR press ENTER for default[${defaultDbName}]): " databaseName
+        if [ "$databaseName" = "" ]; then
+            value="${defaultDbName}"
+        else
+            value="$databaseName"
+        fi
+        echo -e "\e[32m Using Database ----> $value!\e[0m"
+
+        sed -i "s|\[SET_APP_DATABASE\]|$value|" "$rootDir/.env"
+
+        sed -i "s|\[SET_APP_PUBLIC_DIR\]|$publicDir|" "$rootDir/.env"
+        sed -i "s|\[SET_APP_IS_LARAVEL\]|$laravel|" "$rootDir/.env"
+
+        echo -e "\e[32m ENV created! ---->!\e[0m"
+
+    fi
+}
+
+function containerIsRunning() {
+    local container_name=$1
+    local timeout=10
+
+    for ((i = 0; i < timeout; i++)); do
+        if docker inspect -f '{{.State.Running}}' "$container_name" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 1
+    done
+
+    return 1
+}
+
+function testDockerRunning() {
+    if docker info >/dev/null 2>&1; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Install Docker
+function dockerServer() {
+    echo -e "\e[32mInstalling Docker server\e[0m"
+
+    publicDir="$(get_env APP_PUBLIC_DIR)"
+
+    # ----------------- Create the require folders for the build -----------------
+    echo "Deleting node_modules"
+    if [ -d "$rootDir/node_modules" ]; then
+        rm -rf "$rootDir/node_modules"
+    fi
+    mkdir -p "$rootDir/node_modules" && chmod -R 777 "$rootDir/node_modules"
+
+    echo "Deleting vendor"
+    if [ -d "$rootDir/vendor" ]; then
+        rm -rf "$rootDir/vendor"
+    fi
+    mkdir -p "$rootDir/vendor" && chmod -R 777 "$rootDir/vendor"
+
+    echo "copying ssh keys from host machine"
+    if [ -d $HOME/.ssh ]; then
+        mkdir -p "$rootDir/.ssh" && chmod +x "$rootDir/.ssh"
+        cp -R $HOME/.ssh/* "$rootDir/.ssh/"
+        find . -type f -wholename "$rootDir/.ssh/*id_rsa" -exec chmod 600 {} \;
+        find . -type f -wholename "$rootDir/.ssh/*id_rsa.pub" -exec chmod 644 {} \;
+        find . -type f -wholename "$rootDir/.ssh/*known_hosts" -exec chmod 644 {} \;
+    fi
+
+    # ----------------- Run Docker -----------------
+    if [ -f "$rootDir/docker-compose.yml" ]; then
+        rm -rf "$rootDir/docker-compose.yml"
+    fi
+    cp "$rootDir/.docker/docker-compose.yml.template" "$rootDir/docker-compose.yml"
+    sed -i "s|\[DOCKER_USER\]|$dockerUser|" "$rootDir/docker-compose.yml"
+    cp "$rootDir/.docker/laravel/settings/laravel.conf.template" "$rootDir/.docker/laravel/settings/laravel.conf"
+    sed -i "s|\[DOCKER_WORKSPACE_DIR\]|/home/$dockerUser/www/$publicDir|" "$rootDir/.docker/laravel/settings/laravel.conf"
+
+    # ----------------- Check if it is Wordpress site -----------------
+    while true; do
+        read -p $'\e[91m--------- is this a WP Project? \e[0m (Y or N/or press ENTER) : ' iswp
+
+        case $iswp in
+        [Yy]*)
+            # Add a volume for wp-content because otherwise it will slow down the server
+
+            echo "setting up WP volume"
+            wpDir="$rootDir/$publicDir"
+            installWp=$(prompt_input "Install WP? (Y or N/or press ENTER)")
+            if [[ "$installWp" =~ ^[Yy]$ ]]; then
+                chmod -R 777 "$wpDir"
+                cd $wpDir
+                curl -O "https://wordpress.org/latest.zip"
+                unzip "latest.zip" && rm -rf "latest.zip"
+                cd $rootDir
+                mv $wpDir/wordpress/* "$wpDir/" && rm -rf $wpDir/wordpress
+                echo "WP installed"
+
+            else
+                echo "skipping WP install"
+            fi
+            wpVolumen="- ./$publicDir/wp-content:\${DOCKER_WORKSPACE_DIR}/$publicDir/wp-content:delegated"
+            sed -i "s|# \[WP_VOLUME\]|$wpVolumen|" "$rootDir/docker-compose.yml"
+            # Alter the HTACCESS file to suit WP settings
+            cp $wpDir/.htaccess $wpDir/.htaccess.bak
+            sed '/#INIT__Lavarel_or_others/,/#END__Lavarel_or_others/d' $wpDir/.htaccess.bak >$wpDir/.htaccess
+            cat $rootDir/.docker/laravel/htaccess/.htaccess-wp >>$wpDir/.htaccess
+            break
+            ;;
+        [Nn]* | "")
+            echo '-->skipping WP'
+            break
+            ;;
+        *) echo "Please answer yes or no." ;;
+        esac
+    done
+
+    installDB=$(prompt_input "Install Docker DB? (Y or N/or press ENTER)")
+    emptyVal=""
+    if [[ "$installDB" =~ ^[Yy]$ ]]; then
+        echo "setting up DB volume"
+        sed -i "s|#_db|$emptyVal|" "$rootDir/docker-compose.yml"
+
+        installPhpMyAdmin=$(prompt_input "Install Docker PhpMyAdmin? (Y or N/or press ENTER)")
+        if [[ "$installPhpMyAdmin" =~ ^[Yy]$ ]]; then
+            echo "setting up PhpMyAdmin volume"
+            sed -i "s|#_phpadmin]|$emptyVal|" "$rootDir/docker-compose.yml"
+        else
+            echo "skipping PhpMyAdmin install"
+        fi
+    else
+        echo "skipping DB install"
+    fi
+
+    #------------------------------
+
+    # Check if docker is running
+    if testDockerRunning; then
+        echo -e "\e[32mDocker is running.\e[0m"
+    else
+        echo -e "\e[91mDocker is not running.\e[0m"
+        echo -e "\e[91mDocker needs to be running to continue.\e[0m"
+
+        echo -e "\e[91m Please confirm if docker is running...\e[0m"
+        while true; do
+            read -p $'\e[91m--------- is docker running? \e[0m (Y or N/or press ENTER) : ' isDockerRunning
+
+            case $isDockerRunning in
+            [Yy]*)
+                if testDockerRunning; then
+                    echo -e "\e[32mDocker is running.\e[0m"
+                    break
+                else
+                    echo -e "\e[91mDocker is not running.\e[0m"
+                    echo -e "\e[91mDocker needs to be running to continue.\e[0m"
+                fi
+                ;;
+            [Nn]* | "")
+                echo -e "\e[91mInstallation aborted\e[0m"
+                exit 1
+                ;;
+            *) echo "Please answer yes or no." ;;
+            esac
+        done
+    fi
+
+    # stop all containers before building
+    docker kill $(docker ps -q) >/dev/null 2>&1
+
+    # Check if the image exists
+    imageServer=knighttower/server-php82
+    imageExists=$(docker inspect $imageServer >/dev/null 2>&1 && echo true || echo false)
+
+    if [[ "$imageExists" == false ]]; then
+        fromRemote=$(docker pull knighttower/server-php82 >/dev/null 2>&1 && echo true || echo false)
+        if [[ "$fromRemote" == false ]]; then
+            echo -e "\e[91m No image found in remote or connection not established\e[0m"
+            echo -e "\e[91m Building local image.... \e[0m"
+            docker login
+            docker build -t knighttower/server-php82:latest -f "$rootDir/.docker/php/Dockerfile" .
+            docker push knighttower/server-php82:latest
+        else
+            echo -e "\e[32m Image pulled from remote \e[0m"
+        fi
+    fi
+
+    # This runs the docker up sequence
+    echo -e "\e[32m -------- Docker compose START UP  ----- \e[0m"
+    containerName=$(git dockerup $dockerUser | tail -n 1)
+
+    echo -e "\e[32m -------- Docker compose has completed ----- \e[0m"
+
+    if [ "$(containerIsRunning "$dockerUser")" = '' ]; then
+        echo -e "\e[32m The container is running \e[0m"
+
+        # ----------------- Create the require folders for the build -----------------
+        echo "---- installing Git and Jarvis inside container"
+
+        if [ -d "$rootDir/.gitcommands/git" ]; then
+
+            while true; do
+                read -p $'\e[91m--------- Want to install Git commands in the container? \e[0m (Y or N/or press ENTER) : ' installGit
+
+                case $installGit in
+                [Yy]*)
+                    git dockergit "$dockerUser"
+                    echo "---- Git installed"
+                    break
+                    ;;
+                [Nn]* | "")
+
+                    echo -e "\e[91m ------------Git command has been skipped---------------- \e[0m"
+                    break
+                    ;;
+                *) echo "Please answer yes or no." ;;
+                esac
+            done
+
+        fi
+
+        if [ -d "$rootDir/.jarvis" ]; then
+            while true; do
+                read -p $'\e[91m--------- Want to install Jarvis in the container? (Y or N)?\e[0m' installJarvis
+
+                case $installJarvis in
+                [Yy]*)
+                    git dockerjarvis "$dockerUser"
+                    echo "---- Jarvis installed"
+                    break
+                    ;;
+                [Nn]*)
+
+                    echo -e "\e[91m ------------Jarvis has been skipped---------------- \e[0m"
+                    break
+                    ;;
+                *) echo "Please answer yes or no." ;;
+                esac
+            done
+        fi
+
+        # Check if composer.json exists
+        if [ -e "composer.json" ]; then
+            echo -e "\n \e[32m -------- Executing After-Build commands inside docker container ----- \e[0m"
+            set -x
+            docker exec -it "$dockerUser" composer install --ansi --no-interaction --no-progress
+            docker exec -it "$dockerUser" npm install
+            docker exec -it "$dockerUser" npm run dev
+            docker exec -it "$dockerUser" php artisan storage:link
+            docker exec -it "$dockerUser" php artisan migrate
+            set +x
+        else
+            echo "composer.json does not exist or not a Laravel project"
+        fi
+
+    else
+        # echo in red
+        echo -e "\e[91m ---------------------------------------------- \e[0m"
+        echo -e "\e[91m JARVIS, GIT AND laravel COULD NOT BE INSTALL DUE TO CONTAINER NOT RUNNING, TRY AGAIN MANUALLY. \e[0m"
+        echo -e "\e[91m Or it was already installed, please check via console (docker exec -it laravel git test, jarvis...) \e[0m"
+        echo -e "\e[91m ---------------------------------------------- \e[0m"
+    fi
+
+    echo -e "\e[32m Docker server all done ---->!\e[0m"
+}
+
+# -----------------------------------------------------
+# ----------------- Run the functions -----------------
+# Runs git init and sets the public dir
+gitInit
+# Sets the htaccess
+setupHtaccess $laravel "$publicDir"
+# Sets the .env file
+setEnvFile
+
+while true; do
+    read -p $'\e[91m--------- Install Docker server?\e[0m (Y or N/or press ENTER)' runDocker
+
+    case $runDocker in
+    [Yy]*)
+        if [ ! -d "$rootDir/.docker" ]; then
+            echo "no docker folder FOUND!"
+        else
+            dockerServer
+        fi
+
+        break
+        ;;
+    [Nn]* | "")
+        echo '-->skipping Server'
+        break
+        ;;
+    *) echo "Please answer yes or no." ;;
+    esac
+done
+
+exit 0
