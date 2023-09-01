@@ -10,6 +10,14 @@ GZip: 8 KiB
 Brotli: 5 KiB
 <br>
 
+<br>
+Usage:  <br>
+```
+npm install @knighttower/bootstrapmini
+```
+
+<br><br>
+
 ### It includes
 
 -   Cool set of mixins (in addition to the bootstrap default ones)
