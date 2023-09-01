@@ -12,8 +12,17 @@ Brotli: 5 KiB
 
 <br>
 Usage:  <br>
+
 ```
-npm install @knighttower/bootstrapmini
+npm install @knighttower/bootstrapmini -D
+```
+
+```
+yarn add @knighttower/bootstrapmini -D
+```
+
+```scss
+@import '~@knighttower/bootstrapmini/scss/bootstrapmini';
 ```
 
 <br><br>
@@ -89,8 +98,10 @@ npm install @knighttower/bootstrapmini
 -   No negative margins or paddings
 
 <br>
-## Why?  
-Most CSS frameworks come loaded with themes, or bulky in general that makes it hard the quick use without getting the full package or having to modified them to get only what you need. I also (IMO) think that the grid system bootstrap offers, has simple and versitile enough to be used in quick projects. (I'll discuss that in a future post).      
+
+### Why?
+
+Most CSS frameworks come loaded with themes, or bulky in general that makes it hard the quick use without getting the full package or having to modified them to get only what you need. I also (IMO) think that the grid system bootstrap offers, has simple and versitile enough to be used in quick projects. (I'll discuss that in a future post).  
 Please notice, that there are things that are not included in this tyny version, the intention of this it to be basic, and if more functionality is needed, or theme styles need to be applied, then you should go full framework with Bootstrap [https://getbootstrap.com], Tachyons [https://tachyons.io], unoCSS [https://unocss.dev] (I have my eye on this one), etc...
 
 <br>
