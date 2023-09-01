@@ -1,3 +1,7 @@
+.gitcommands
+.gitconfig
+.gitattributes
+.htaccess
 # Sensitive files
 .env
 **/.db.cnf
