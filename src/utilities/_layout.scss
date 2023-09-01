@@ -1,0 +1,161 @@
+@use "sass:list";
+@use "../settings/index" as *;
+@import "node_modules/bootstrap/scss/helpers/ratio";
+@import "node_modules/bootstrap/scss/helpers/position";
+
+// =========================================
+// --> Bring only the require for a layout
+$boostrapUtilities: map-get-multiple(
+    $utilities,
+    (
+        // From boostrap
+        "align-content",
+        "align-items",
+        "align-self",
+        "display",
+        "flex",
+        "flex-direction",
+        "flex-grow",
+        "flex-shrink",
+        "flex-wrap",
+        "justify-content",
+        "margin",
+        "margin-bottom",
+        "margin-top",
+        "margin-x",
+        "margin-y",
+        "order",
+        "padding",
+        "padding-bottom",
+        "padding-top",
+        "padding-x",
+        "padding-y",
+        "visibility"
+    )
+);
+
+// -----------------------------------------
+// Remap to correct or override the utilities
+$sparkUtil: mapMerge(
+    $boostrapUtilities,
+    (
+        "margin-right": (
+            responsive: true,
+            property: margin-right,
+            class: mr,
+            values:
+                map-merge(
+                    $spacers,
+                    (
+                        auto: auto,
+                    )
+                ),
+        ),
+        "margin-left": (
+            responsive: true,
+            property: margin-left,
+            class: ml,
+            values:
+                map-merge(
+                    $spacers,
+                    (
+                        auto: auto,
+                    )
+                ),
+        ),
+        "padding-right": (
+            responsive: true,
+            property: padding-right,
+            class: mr,
+            values:
+                map-merge(
+                    $spacers,
+                    (
+                        auto: auto,
+                    )
+                ),
+        ),
+        "padding-left": (
+            responsive: true,
+            property: padding-left,
+            class: ml,
+            values:
+                map-merge(
+                    $spacers,
+                    (
+                        auto: auto,
+                    )
+                ),
+        ),
+        "float": (
+            responsive: true,
+            property: float,
+            values: (
+                left: left,
+                right: right,
+                none: none,
+            ),
+        ),
+        "width-percent": (
+            responsive: true,
+            property: width,
+            class: w,
+            values: $percentSizes,
+        ),
+        "height-percent": (
+            responsive: true,
+            property: width,
+            class: h,
+            values:
+                map-merge(
+                    $percentSizes,
+                    (
+                        vh: 100vh,
+                    )
+                ),
+        ),
+        "z-index": (
+            property: z-index,
+            class: z,
+            values: $zIndex,
+        ),
+        "border-style": (
+            property: border-style,
+            class: "-",
+            values: (
+                dashed: dashed,
+                dotted: dotted,
+                none: none,
+                solid: solid,
+            ),
+        ),
+    )
+);
+
+// -----------------------------------------
+// Start building the classes
+$targetBreakpoints: map-get-multiple($sparkBreakpoints, $screenSizes);
+$responsiveClasses: ();
+
+// produce the standard utility classes
+@each $key, $value in $sparkUtil {
+    @include generate-utility($value);
+
+    @if (type-of($value) == "map") {
+        @if (map-get($value, responsive)) {
+            $responsiveClasses: append($responsiveClasses, $value);
+        }
+    }
+}
+
+// produce the responsive utility classes
+@if length($responsiveClasses) > 0 {
+    @each $breakpoint in map-keys($targetBreakpoints) {
+        $suffix: -#{$breakpoint};
+        @include breakpoint($breakpoint) {
+            @each $value in $responsiveClasses {
+                @include generate-utility($value, $suffix);
+            }
+        }
+    }
+}
