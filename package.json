@@ -1,5 +1,5 @@
 {
-    "name": "@knighttower/boostrapmini",
+    "name": "@knighttower/bootstrapmini",
     "author": "knighttower (https://github.com/knighttower)",
     "description": "Abstracted Bootstrap for utility prototypes",
     "version": "0.0.1",
@@ -43,6 +43,6 @@
         "sass-loader": "^13.3.2"
     },
     "main": "index.js",
-    "sass": "src/boostrapmini.scss",
-    "style": "dist/boostrapmini.css"
+    "sass": "src/bootstrapmini.scss",
+    "style": "dist/bootstrapmini.css"
 }

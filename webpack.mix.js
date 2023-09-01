@@ -2,7 +2,7 @@ let mix = require('laravel-mix');
 require('laravel-mix-compress');
 const path = require('path');
 
-mix.sass('src/boostrapmini.scss', 'dist')
+mix.sass('src/bootstrapmini.scss', 'dist')
     .options({
         processCssUrls: false,
     })

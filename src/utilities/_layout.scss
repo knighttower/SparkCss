@@ -5,10 +5,10 @@
 
 // =========================================
 // --> Bring only the require for a layout
-$boostrapUtilities: map-get-multiple(
+$bootstrapUtilities: map-get-multiple(
     $utilities,
     (
-        // From boostrap
+        // From bootstrap
         "align-content",
         "align-items",
         "align-self",
@@ -37,7 +37,7 @@ $boostrapUtilities: map-get-multiple(
 // -----------------------------------------
 // Remap to correct or override the utilities
 $sparkUtil: mapMerge(
-    $boostrapUtilities,
+    $bootstrapUtilities,
     (
         "margin-right": (
             responsive: true,
