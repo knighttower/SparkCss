@@ -38,6 +38,13 @@ $zIndex: (
 $prefix: bs-;
 $enable-rfs: false;
 $enable-important-utilities: false;
+
+$grid-columns: 12;
+$grid-gutter-width: 1.5rem;
+$grid-row-columns: 6;
+$enable-grid-classes: true;
+$enable-cssgrid: true;
+
 $font-size-base: 1rem;
 $font-size-sm: $font-size-base * 0.875;
 $font-size-lg: $font-size-base * 1.25;

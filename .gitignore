@@ -64,7 +64,7 @@ rr
 .nuxt
 .nitro
 .cache
-dist
+
 *.suo
 *.ntvs*
 *.njsproj
@@ -90,7 +90,6 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist-ssr
 coverage
 *.local
 
