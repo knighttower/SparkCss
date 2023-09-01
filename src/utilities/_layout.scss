@@ -104,7 +104,7 @@ $sparkUtil: mapMerge(
         ),
         "height-percent": (
             responsive: true,
-            property: width,
+            property: height,
             class: h,
             values:
                 map-merge(

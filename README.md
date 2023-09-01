@@ -29,6 +29,54 @@ yarn add @knighttower/bootstrapmini -D
 
 ### It includes
 
+-   Width
+-   Height
+-   Z-index
+-   Flex
+-   Flexbox
+-   Grid
+-   CSS grid
+-   Spacing
+-   Columns
+-   Position
+-   Display
+-   Sizing
+-   Margin
+-   Padding
+-   Float
+-   Clear
+-   Utilities
+-   Mixins
+
+<br>
+
+## It does not include
+
+-   No javascript
+-   No images
+-   No fonts
+-   No icons
+-   No javascript plugins
+-   No components
+-   No animations
+-   No transitions
+-   No colors
+-   No themes
+-   No resets
+-   No negative margins or paddings
+-   No negative width or height
+-   No negative z-index
+-   No buttons
+-   No forms
+-   No tables
+-   No typography
+-   No print styles
+
+**--> Told ya! It's tiny!**
+
+<br>
+<br>
+## Features
 -   Cool set of mixins (in addition to the bootstrap default ones)
 
 ```scss
@@ -81,21 +129,6 @@ yarn add @knighttower/bootstrapmini -D
     -- xl: 1200 (targets from here up (bootstrap default behavior))
     -- xxl: 1400 (targets from here up (bootstrap default behavior))
     <br>
-
-## It does not include
-
--   No javascript
--   No images
--   No fonts
--   No icons
--   No javascript plugins
--   No components
--   No animations
--   No transitions
--   No colors
--   No themes
--   No resets
--   No negative margins or paddings
 
 <br>
 
