@@ -2,9 +2,9 @@
     "name": "@knighttower/bootstrapmini",
     "author": "knighttower (https://github.com/knighttower)",
     "description": "Abstracted Bootstrap for utility prototypes",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "config": {
-        "version_short": "0.0.7"
+        "version_short": "0.0.8"
     },
     "keywords": [
         "css",
