@@ -27,14 +27,17 @@ yarn add @knighttower/bootstrapmini -D
 
 <br>
 or as a drop-in css file into vite or webpack
-```js
-import "@knighttower/bootstrapmini/dist/bootstrapmini.css"
-```
+<br>  
+
+```  
+import "@knighttower/bootstrapmini/dist/bootstrapmini.css"  
+```  
 
 <br>
+
 If using the sass file, some variables are available to be modified before importing the file. These are the defaults
 
-```sass
+```scss  
 $miniPrefix: bs-;
 $miniColumns: 12;
 $miniGutterWidth: 1.5rem;
@@ -54,16 +57,16 @@ $miniEnableVisibility: true;
 $miniEnableContainer: true;
 $miniEnableGridClasses: true;
 $miniEnableCssGrid: true;
-```
+```  
 
 <br>
 Then do:
-<br>
-```sass
-$miniEnableMargins: false;
-//... other overrides before the import
-@import '~@knighttower/bootstrapmini/src/bootstrapmini';
+<br>  
 
+```scss  
+$miniEnableMargins: false;  
+//... other overrides before the import  
+@import '~@knighttower/bootstrapmini/src/bootstrapmini';  
 ````
 
 <br><br>
