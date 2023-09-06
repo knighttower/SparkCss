@@ -1,3 +1,4 @@
+@use "sass:meta";
 @import "breakpoints";
 
 // it matches the breakpoint array key
@@ -33,18 +34,55 @@ $zIndex: (
     auto: auto,
 ) !default;
 
+// =========================================
+// --> Presets that can be modified
+// --------------------------
+$miniPrefix: bs- !default;
+$miniColumns: 12 !default;
+$miniGutterWidth: 1.5rem !default;
+$miniRowColumns: 6 !default;
+$miniFontSizeBase: 1rem !default;
+
+$miniEnableMargins: true !default;
+$miniEnablePadding: true !default;
+$miniEnableWidth: true !default;
+$miniEnableHeight: true !default;
+$miniEnableZIndex: true !default;
+$miniEnableFlex: true !default;
+$miniEnableFloat: true !default;
+$miniEnablePosition: true !default;
+$miniEnableDisplay: true !default;
+$miniEnableVisibility: true !default;
+$miniEnableContainer: true !default;
+$miniEnableGridClasses: true !default;
+$miniEnableCssGrid: true !default;
+
 // -----------------------------------------
 // Custom bootstrap load
-$prefix: bs-;
+$prefix: $miniPrefix;
 $enable-rfs: false;
 $enable-important-utilities: false;
 
-$grid-columns: 12;
-$grid-gutter-width: 1.5rem;
-$grid-row-columns: 6;
-$enable-grid-classes: true;
-$enable-cssgrid: true;
+$grid-columns: $miniColumns;
+$grid-gutter-width: $miniGutterWidth;
+$grid-row-columns: $miniRowColumns;
+$enable-grid-classes: $miniEnableGridClasses;
+$enable-container-classes: $miniEnableContainer;
+$enable-cssgrid: $miniEnableCssGrid;
 
-$font-size-base: 1rem;
+$font-size-base: $miniFontSizeBase;
 $font-size-sm: $font-size-base * 0.875;
 $font-size-lg: $font-size-base * 1.25;
+
+$miniUtilsMapping: (
+    margin: $miniEnableMargins,
+    padding: $miniEnablePadding,
+    width: $miniEnableWidth,
+    height: $miniEnableHeight,
+    z-index: $miniEnableZIndex,
+    flex: $miniEnableFlex,
+    float: $miniEnableFloat,
+    position: $miniEnablePosition,
+    display: $miniEnableDisplay,
+    visibility: $miniEnableVisibility,
+);

@@ -1,95 +1,78 @@
 @use "sass:list";
-@use "../settings/index" as *;
-@import "node_modules/bootstrap/scss/helpers/ratio";
-@import "node_modules/bootstrap/scss/helpers/position";
 
 // =========================================
 // --> Bring only the require for a layout
-$bootstrapUtilities: map-get-multiple(
-    $utilities,
-    (
-        // From bootstrap
-        "align-content",
-        "align-items",
-        "align-self",
-        "display",
-        "flex",
-        "flex-direction",
-        "flex-grow",
-        "flex-shrink",
-        "flex-wrap",
-        "justify-content",
-        "margin",
-        "margin-bottom",
-        "margin-top",
-        "margin-x",
-        "margin-y",
-        "order",
-        "padding",
-        "padding-bottom",
-        "padding-top",
-        "padding-x",
-        "padding-y",
-        "visibility"
-    )
+$sparkUtil: (
+    "border-style": (
+        property: border-style,
+        class: "-",
+        values: (
+            dashed: dashed,
+            dotted: dotted,
+            none: none,
+            solid: solid,
+        ),
+    ),
 );
 
-// -----------------------------------------
-// Remap to correct or override the utilities
-$sparkUtil: mapMerge(
-    $bootstrapUtilities,
-    (
-        "margin-right": (
-            responsive: true,
-            property: margin-right,
-            class: mr,
-            values:
-                map-merge(
-                    $spacers,
-                    (
-                        auto: auto,
-                    )
+$sparkOptionalUtils: (
+    margin:
+        mapMerge(
+            map-get-multiple($utilities, ("margin", "margin-bottom", "margin-top", "margin-x", "margin-y")),
+            (
+                "margin-right": (
+                    responsive: true,
+                    property: margin-right,
+                    class: mr,
+                    values:
+                        map-merge(
+                            $spacers,
+                            (
+                                auto: auto,
+                            )
+                        ),
                 ),
-        ),
-        "margin-left": (
-            responsive: true,
-            property: margin-left,
-            class: ml,
-            values:
-                map-merge(
-                    $spacers,
-                    (
-                        auto: auto,
-                    )
+                "margin-left": (
+                    responsive: true,
+                    property: margin-left,
+                    class: ml,
+                    values:
+                        map-merge(
+                            $spacers,
+                            (
+                                auto: auto,
+                            )
+                        ),
                 ),
+            )
         ),
-        "padding-right": (
-            responsive: true,
-            property: padding-right,
-            class: pr,
-            values: $spacers,
+    padding:
+        mapMerge(
+            map-get-multiple($utilities, ("padding", "padding-bottom", "padding-top", "padding-x", "padding-y")),
+            (
+                "padding-right": (
+                    responsive: true,
+                    property: padding-right,
+                    class: pr,
+                    values: $spacers,
+                ),
+                "padding-left": (
+                    responsive: true,
+                    property: padding-left,
+                    class: pl,
+                    values: $spacers,
+                ),
+            )
         ),
-        "padding-left": (
-            responsive: true,
-            property: padding-left,
-            class: pl,
-            values: $spacers,
-        ),
-        "float": (
-            responsive: true,
-            property: float,
-            values: (
-                left: left,
-                right: right,
-                none: none,
-            ),
-        ),
+    width: (
         "width-percent": (
             responsive: true,
             property: width,
             class: w,
             values: $percentSizes,
         ),
+    ),
+    height: (
         "height-percent": (
             responsive: true,
             property: height,
@@ -102,23 +85,53 @@ $sparkUtil: mapMerge(
                     )
                 ),
         ),
+    ),
+    z-index: (
         "z-index": (
             property: z-index,
             class: z,
             values: $zIndex,
         ),
-        "border-style": (
-            property: border-style,
-            class: "-",
+    ),
+    flex:
+        map-get-multiple(
+            $utilities,
+            (
+                "align-content",
+                "align-items",
+                "align-self",
+                "flex",
+                "flex-direction",
+                "flex-grow",
+                "flex-shrink",
+                "flex-wrap",
+                "justify-content",
+                "order"
+            )
+        ),
+    float: (
+        "float": (
+            responsive: true,
+            property: float,
             values: (
-                dashed: dashed,
-                dotted: dotted,
+                left: left,
+                right: right,
                 none: none,
-                solid: solid,
             ),
         ),
-    )
+    ),
+    position: map-get-multiple($utilities, ("position")),
+    display: map-get-multiple($utilities, ("display")),
+    visibility: map-get-multiple($utilities, ("visibility")),
 );
+
+// -----------------------------------------
+// Remap to correct or override the utilities
+@each $key, $value in $miniUtilsMapping {
+    @if $value {
+        $sparkUtil: map-merge($sparkUtil, map-get($sparkOptionalUtils, $key));
+    }
+}
 
 // -----------------------------------------
 // Start building the classes

@@ -1,5 +1,3 @@
-@use "../settings/index" as *;
-
 $visibleStates: (hide, show);
 
 @each $state in $visibleStates {

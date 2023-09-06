@@ -2,7 +2,7 @@
 
 Built on top of Bootstrap but modified to have only the basic utilities classes and the grid system. This is a (very) lightweight CSS version that can be used to build websites and web applications.
 <br>
-It is not meant to replace the full functionality of Bootstrap, only to abstract the basic utilities to use in quick prototypes, small projects or to compliment other frameworks since it does not add any root styles, resets or normalize, colors or other theme styles that would override or conflict.
+It is not meant to replace the full functionality of Bootstrap, only to abstract the basic utilities to use in quick prototypes, small projects or to compliment other frameworks since it does not add any root styles, resets or normalize, colors or other theme styles that would override or conflict. It can also be customized with a few variables before importing the file to load only a few utilities or the full set.
 <br>
 Compressed: 72.5 KiB  
 Uncompressed: 104 KiB  
@@ -22,8 +22,49 @@ yarn add @knighttower/bootstrapmini -D
 ```
 
 ```scss
-@import '~@knighttower/bootstrapmini/scss/bootstrapmini';
+@import '~@knighttower/bootstrapmini/src/bootstrapmini';
 ```
+
+<br>
+or as a drop-in css file into vite or webpack
+```js
+import "@knighttower/bootstrapmini/dist/bootstrapmini.css"
+```
+
+<br>
+If using the sass file, some variables are available to be modified before importing the file. These are the defaults
+
+```sass
+$miniPrefix: bs-;
+$miniColumns: 12;
+$miniGutterWidth: 1.5rem;
+$miniRowColumns: 6;
+$miniFontSizeBase: 1rem;
+
+$miniEnableMargins: true;
+$miniEnablePadding: true;
+$miniEnableWidth: true;
+$miniEnableHeight: true;
+$miniEnableZIndex: true;
+$miniEnableFlex: true;
+$miniEnableFloat: true;
+$miniEnablePosition: true;
+$miniEnableDisplay: true;
+$miniEnableVisibility: true;
+$miniEnableContainer: true;
+$miniEnableGridClasses: true;
+$miniEnableCssGrid: true;
+```
+
+<br>
+Then do:
+<br>
+```sass
+$miniEnableMargins: false;
+//... other overrides before the import
+@import '~@knighttower/bootstrapmini/src/bootstrapmini';
+
+````
 
 <br><br>
 
@@ -102,7 +143,7 @@ yarn add @knighttower/bootstrapmini -D
         // rules
     }
 }
-```
+````
 
 <br>
 -   A set of utility classes that can be used to build websites and web applications. Only the most used classes are included. The rest can be added by the user.
