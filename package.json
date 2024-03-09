@@ -2,9 +2,9 @@
     "name": "@knighttower/bootstrapmini",
     "author": "knighttower (https://github.com/knighttower)",
     "description": "Abstracted Bootstrap for utility prototypes",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "config": {
-        "version_short": "0.1.1"
+        "version_short": "0.1.2"
     },
     "keywords": [
         "css",
@@ -12,7 +12,11 @@
         "responsive",
         "front-end",
         "framework",
-        "web"
+        "web",
+        "bootstrap",
+        "utility",
+        "prototyping",
+        "abstracted"
     ],
     "homepage": "https://github.com/knighttower/BootstrapMiniCss",
     "license": "MIT",
@@ -27,9 +31,11 @@
         "prod": "yarn run production",
         "production": "yarn mix --production"
     },
+    "dependencies": {
+        "bootstrap": "^5.3.1"
+    },
     "devDependencies": {
         "autoprefixer": "^10.4.15",
-        "bootstrap": "^5.3.1",
         "cross-env": "^7.0.3",
         "eslint": "^8.47.0",
         "find-unused-sass-variables": "^5.0.0",
