@@ -1,3 +1,9 @@
+---
+# ⚠ ATTENTION: 
+## This repo has been moved as part of a monorepo to -> https://github.com/knighttower/JsUtility
+
+---
+
 # Bootstrap Mini
 
 Built on top of Bootstrap but modified to have only the basic utilities classes and the grid system. This is a (very) lightweight CSS version that can be used to build websites and web applications.
